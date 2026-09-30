@@ -1,0 +1,155 @@
+{
+  "name": "fezd",
+  "displayName": "FEZD",
+  "description": "Convert Control Expert .zef archives to .stu and deploy to a hosted or on-prem FEZD gateway (simulator or plant PLC).",
+  "version": "0.1.0",
+  "publisher": "scadadog",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scadadog/fezd-vscode.git"
+  },
+  "homepage": "https://github.com/scadadog/fezd-vscode",
+  "bugs": {
+    "url": "https://github.com/scadadog/fezd-vscode/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "FEZD",
+    "Control Expert",
+    "Modicon",
+    "PLC",
+    "Schneider"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "fezd.health",
+        "title": "FEZD: Health"
+      },
+      {
+        "command": "fezd.setApiKey",
+        "title": "FEZD: Set API key"
+      },
+      {
+        "command": "fezd.setAppPassword",
+        "title": "FEZD: Set application password"
+      },
+      {
+        "command": "fezd.switchEnvironment",
+        "title": "FEZD: Switch environment"
+      },
+      {
+        "command": "fezd.convertZefToStu",
+        "title": "FEZD: Convert ZEF to STU"
+      },
+      {
+        "command": "fezd.deploy",
+        "title": "FEZD: Deploy (active profile)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "fezd.convertZefToStu",
+          "when": "resourceExtname =~ /\\.(zef|xef|sta)$/i",
+          "group": "fezd@1"
+        },
+        {
+          "command": "fezd.deploy",
+          "when": "resourceExtname =~ /\\.(zef|xef|stu|sta)$/i",
+          "group": "fezd@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FEZD",
+      "properties": {
+        "fezd.activeProfile": {
+          "type": "string",
+          "enum": [
+            "hosted",
+            "onPrem"
+          ],
+          "enumDescriptions": [
+            "Off-prem hosted gateway (default: Control Expert simulator)",
+            "On-prem fezd-server (default: deploy to a plant PLC IP)"
+          ],
+          "default": "hosted",
+          "description": "Which gateway profile convert and deploy use."
+        },
+        "fezd.hosted.url": {
+          "type": "string",
+          "default": "",
+          "description": "Off-prem gateway URL (FEZD_URL), e.g. https://fezd.example.com:8443"
+        },
+        "fezd.hosted.plcAddress": {
+          "type": "string",
+          "default": "",
+          "description": "Optional PLC IP for off-prem deploys. Leave empty to use the Control Expert simulator."
+        },
+        "fezd.hosted.plcPort": {
+          "type": "number",
+          "default": 502,
+          "description": "Modbus TCP port when fezd.hosted.plcAddress is set."
+        },
+        "fezd.onPrem.url": {
+          "type": "string",
+          "default": "https://127.0.0.1:8443",
+          "description": "On-prem fezd-server URL (FEZD_URL)."
+        },
+        "fezd.onPrem.plcAddress": {
+          "type": "string",
+          "default": "",
+          "description": "Plant PLC IP for on-prem deploy (deploy --target)."
+        },
+        "fezd.onPrem.plcPort": {
+          "type": "number",
+          "default": 502,
+          "description": "Modbus TCP port for the on-prem PLC."
+        },
+        "fezd.runAfterDeploy": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start the PLC/simulator after a successful download (deploy --run)."
+        },
+        "fezd.forceDeploy": {
+          "type": "boolean",
+          "default": false,
+          "description": "Pass force on deploy (stop a running PLC / close an open project)."
+        },
+        "fezd.artifactDir": {
+          "type": "string",
+          "default": "artifacts",
+          "description": "Workspace-relative folder for downloaded .stu / build-errors.txt."
+        },
+        "fezd.allowInsecureTls": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip TLS certificate verification (self-signed on-prem gateways). Prefer installing the gateway CA in the OS trust store."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "vscode:prepublish": "npm run compile",
+    "package": "npm run compile && vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "typescript": "^5.6.3"
+  }
+}

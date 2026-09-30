@@ -1,0 +1,128 @@
+name: Release
+
+# On code pushes to main: next SemVer from package.json (auto-bump patch if that
+# tag already exists), package the VSIX, GitHub Release, optional Marketplace.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE*"
+      - ".gitignore"
+
+concurrency:
+  group: fezd-vscode-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ !contains(github.event.head_commit.message || '', '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Resolve next version and tag
+        id: ver
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          props_version="$(node -p "require('./package.json').version")"
+          if [[ ! "$props_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid package.json version '$props_version'"
+            exit 1
+          fi
+
+          version="$props_version"
+          IFS=. read -r major minor patch <<<"$version"
+          while git rev-parse "refs/tags/v${version}" >/dev/null 2>&1 \
+             || gh release view "v${version}" >/dev/null 2>&1; do
+            patch=$((patch + 1))
+            version="${major}.${minor}.${patch}"
+          done
+
+          tag="v${version}"
+          echo "props_version=$props_version"
+          echo "version=$version"
+          echo "tag=$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if [[ "$version" != "$props_version" ]]; then
+            node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); p.version=process.argv[1]; fs.writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n');" "$version"
+            echo "Bumped version ${props_version} → ${version}"
+          fi
+
+      - name: Commit version bump and push tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.ver.outputs.version }}"
+          tag="${{ steps.ver.outputs.tag }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --quiet -- package.json; then
+            git add package.json
+            git commit -m "chore: release ${tag} [skip ci]"
+          fi
+
+          git tag -a "$tag" -m "fezd ${tag}"
+          git push origin HEAD:main
+          git push origin "$tag"
+
+      - name: Install and package
+        run: |
+          npm ci
+          npx vsce package
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.ver.outputs.version }}"
+          tag="${{ steps.ver.outputs.tag }}"
+          vsix="fezd-${version}.vsix"
+          {
+            echo "## FEZD extension ${tag}"
+            echo
+            echo "Install from the VS Marketplace for automatic updates (VS Code, Cursor, Windsurf)."
+            echo
+            echo "Fallback: download \`${vsix}\` and **Install from VSIX** (no auto-update)."
+            echo
+            echo "A FEZD gateway license (API key) is required."
+          } > release-notes.md
+          gh release create "$tag" \
+            --title "FEZD extension ${tag}" \
+            --notes-file release-notes.md \
+            --verify-tag \
+            "$vsix"
+
+      - name: Publish to VS Marketplace
+        continue-on-error: true
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VSCE_PAT}" ]]; then
+            echo "VSCE_PAT is not set; skipping Marketplace publish. GitHub Release still has the VSIX."
+            exit 0
+          fi
+          npx vsce publish --pat "$VSCE_PAT" --skip-duplicate
