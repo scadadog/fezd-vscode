@@ -4,6 +4,10 @@ Notable changes to the **FEZD** editor extension (VS Code / Cursor / Windsurf).
 
 ## [Unreleased]
 
+### Added
+
+- Marketplace / Extensions view icon (SCADADOG mark).
+
 ## [0.1.2]
 
 ### Changed
