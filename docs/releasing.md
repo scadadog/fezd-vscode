@@ -15,7 +15,8 @@ over-the-air path.
    `chore: release vX.Y.Z [skip ci]`, and tags.
 4. `vsce package` builds the VSIX; `gh release create` uploads it.
 5. If repository secret **`VSCE_PAT`** is set, `vsce publish` pushes the same
-   build to the Marketplace (publisher `scadadog`, extension id `scadadog-fezd`).
+   build to the Marketplace (publisher `scadadog`, extension id `scadadog-fezd`,
+   display name **SCADADOG FEZD**). `displayName` must be globally unique.
 
 ## Marketplace (OTA)
 

@@ -10,7 +10,7 @@ This does **not** replace Control Expert. The Windows host still runs
 
 ## Install
 
-**Automatic updates:** install **FEZD** from the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=scadadog.scadadog-fezd)
+**Automatic updates:** install **SCADADOG FEZD** from the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=scadadog.scadadog-fezd)
 once the listing is live (VS Code, Cursor, and Windsurf). The editor
 applies new versions; do not sideload if you want OTA.
 
