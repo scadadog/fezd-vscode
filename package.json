@@ -1,8 +1,8 @@
 {
-  "name": "fezd",
+  "name": "scadadog-fezd",
   "displayName": "FEZD",
   "description": "Convert Control Expert .zef archives to .stu and deploy to a hosted or on-prem FEZD gateway (simulator or plant PLC).",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "scadadog",
   "license": "UNLICENSED",
   "repository": {

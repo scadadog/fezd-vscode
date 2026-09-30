@@ -99,7 +99,7 @@ jobs:
           set -euo pipefail
           version="${{ steps.ver.outputs.version }}"
           tag="${{ steps.ver.outputs.tag }}"
-          vsix="fezd-${version}.vsix"
+          vsix="scadadog-fezd-${version}.vsix"
           {
             echo "## FEZD extension ${tag}"
             echo

@@ -4,6 +4,12 @@ Notable changes to the **FEZD** editor extension (VS Code / Cursor / Windsurf).
 
 ## [Unreleased]
 
+## [0.1.1]
+
+### Changed
+
+- Marketplace extension id is `scadadog-fezd` (display name remains FEZD).
+
 ## [0.1.0]
 
 ### Added
